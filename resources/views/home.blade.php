@@ -81,6 +81,11 @@
 /* ── Typewriter cursor blink ── */
 @keyframes caretBlink { 0%,100%{opacity:1} 50%{opacity:0} }
 #tw-cursor{ animation:caretBlink .7s step-end infinite; }
+
+/* ── Hero grid responsive (CSS instead of JS to avoid forced reflow) ── */
+@media (max-width: 899px) {
+    .hero-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
+}
 </style>
 @endsection
 
@@ -118,14 +123,14 @@
     </div>
 
     {{-- Split layout: LEFT text | RIGHT cards | MASCOT centered bottom --}}
-    <div class="relative max-w-6xl mx-auto" style="display:grid;grid-template-columns:1fr 400px;gap:3rem;align-items:center;" id="hero-grid">
+    <div class="relative max-w-6xl mx-auto hero-grid" style="display:grid;grid-template-columns:1fr 400px;gap:3rem;align-items:center;">
 
         {{-- ── LEFT: Text + CTA ── --}}
         <div style="text-align:left;">
 
-            {{-- H1 typewriter --}}
-            <h1 style="font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;line-height:1.13;color:#1a3200;margin-bottom:2rem;letter-spacing:-.025em;min-height:5em;">
-                <span id="tw-text"></span><span id="tw-cursor" style="color:#2e4800;animation:caretBlink 1s step-end infinite;">|</span>
+            {{-- H1 typewriter - static content pre-rendered to avoid CLS --}}
+            <h1 style="font-size:clamp(2rem,4.5vw,3.4rem);font-weight:900;line-height:1.13;color:#1a3200;margin-bottom:2rem;letter-spacing:-.025em;position:relative;">
+                <span id="tw-text">Nói lời tạm biệt với việc<br>tìm tài liệu khắp nơi —<br><span style="background:white;color:#2e6e00;padding:0 8px;border-radius:6px;display:inline-block;">kho học liệu miễn phí</span><br>dành riêng cho Tiểu học!</span><span id="tw-cursor" style="color:#2e4800;animation:caretBlink 1s step-end infinite;position:absolute;">|</span>
             </h1>
 
             {{-- CTA Button --}}
@@ -240,15 +245,16 @@
 
 <script>
 (function(){
-    // Collapse to 1-col on mobile
-    var grid = document.getElementById('hero-grid');
-    if(grid && window.innerWidth < 900){
-        grid.style.gridTemplateColumns = '1fr';
-    }
-
+    // Collapse to 1-col on mobile — use CSS media query instead of JS to avoid forced reflow
     var tw     = document.getElementById('tw-text');
     var cursor = document.getElementById('tw-cursor');
-    if(!tw) return;
+    if(!tw || !cursor) return;
+
+    // Hide static content, replay typewriter for visual effect only (no layout impact)
+    // Static content already rendered above for SEO/CLS; we just replay the animation
+    var finalHTML = tw.innerHTML;
+    tw.innerHTML = '';
+    cursor.style.display = 'inline';
 
     var segments = [
         {chars: 'Nói lời tạm biệt với việc\ntìm tài liệu khắp nơi —\n', lime: false},
