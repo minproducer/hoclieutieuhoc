@@ -2,7 +2,8 @@ Options -MultiViews -Indexes
 RewriteEngine On
 
 # Allow install.php to be accessed directly (remove after install)
+
 RewriteRule ^install\.php$ - [L]
 
 RewriteCond %{REQUEST_URI} !^/public/
-RewriteRule ^(.*)$ /public/$1 [L,QSA]
+RewriteRule ^(.\*)$ /public/$1 [L,QSA]

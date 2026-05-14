@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             'name'       => 'Tiền tiểu học',
             'icon'       => 'fa-child',
             'sort_order' => 1,
+            'type'       => 'grade',
         ]);
 
         $grades      = [];
@@ -41,6 +42,7 @@ class DatabaseSeeder extends Seeder
                 'name'       => "Lớp $n",
                 'icon'       => $gradeIcons[$n - 1],
                 'sort_order' => $n + 1,
+                'type'       => 'grade',
             ]);
         }
 
@@ -52,7 +54,7 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Luyện viết',  'icon' => 'fa-pencil',     'sort_order' => 3, 'subject' => null, 'doc_type' => 'Luyện viết'],
             ['name' => 'Luyện đọc',   'icon' => 'fa-book-open',  'sort_order' => 4, 'subject' => null, 'doc_type' => 'Luyện đọc'],
         ] as $sub) {
-            Category::create(array_merge($sub, ['parent_id' => $tth->id]));
+            Category::create(array_merge($sub, ['parent_id' => $tth->id, 'type' => 'subject']));
         }
 
         // ─── Cấp 2: Lớp 1–5 ─────────────────────────────────────────────
@@ -67,7 +69,7 @@ class DatabaseSeeder extends Seeder
         ];
         foreach (range(1, 5) as $n) {
             foreach ($gradeSubs as $sub) {
-                Category::create(array_merge($sub, ['parent_id' => $grades[$n]->id]));
+                Category::create(array_merge($sub, ['parent_id' => $grades[$n]->id, 'type' => 'subject']));
             }
         }
     }

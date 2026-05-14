@@ -9,6 +9,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class CategoryResource extends Resource
@@ -24,6 +25,11 @@ class CategoryResource extends Resource
     protected static ?string $pluralModelLabel = 'Môn học';
 
     protected static ?int $navigationSort = 2;
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('type', 'subject')->withCount('documents');
+    }
 
     public static function form(Form $form): Form
     {
@@ -59,11 +65,14 @@ class CategoryResource extends Resource
                             ->helperText('Ví dụ: fa-calculator, fa-book, fa-atom')
                             ->maxLength(100),
 
+                        Forms\Components\Hidden::make('type')
+                            ->default('subject'),
+
                         Forms\Components\Select::make('parent_id')
-                            ->label('Danh mục cha')
-                            ->options(Category::whereNull('parent_id')->pluck('name', 'id'))
-                            ->nullable()
-                            ->placeholder('Không có (danh mục gốc)'),
+                            ->label('Khối lớp (bắt buộc)')
+                            ->options(Category::where('type', 'grade')->orderBy('sort_order')->pluck('name', 'id'))
+                            ->required()
+                            ->placeholder('Chọn khối lớp'),
 
                         Forms\Components\TextInput::make('sort_order')
                             ->label('Thứ tự sắp xếp')
@@ -88,7 +97,7 @@ class CategoryResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('parent.name')
-                    ->label('Danh mục cha')
+                    ->label('Khối lớp')
                     ->default('—'),
 
                 Tables\Columns\TextColumn::make('documents_count')
@@ -117,11 +126,6 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
-    }
-
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
-    {
-        return parent::getEloquentQuery()->withCount('documents');
     }
 
     public static function getRelations(): array

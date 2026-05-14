@@ -94,6 +94,9 @@
         <h1 style="font-size:1.5rem;font-weight:800;color:#1f2937;margin:.25rem 0 .5rem;"><?php echo $__env->yieldContent('heading', 'Có lỗi xảy ra'); ?></h1>
         <p style="color:#6b7280;font-size:.95rem;margin-bottom:2rem;line-height:1.6;"><?php echo $__env->yieldContent('message', 'Hổ cũng không biết chuyện gì xảy ra nữa...'); ?></p>
 
+        <?php if (! empty(trim($__env->yieldContent('action-buttons')))): ?>
+            <?php echo $__env->yieldContent('action-buttons'); ?>
+        <?php else: ?>
         <div style="display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;">
             <a href="<?php echo e(url('/')); ?>" class="btn-home" style="display:inline-flex;align-items:center;gap:.5rem;padding:.75rem 1.5rem;background:#3a6b00;color:white;border-radius:1rem;font-weight:800;text-decoration:none;font-size:.95rem;box-shadow:0 4px 18px -4px rgba(58,107,0,.4);">
                 <i class="fa-solid fa-house"></i> Về trang chủ
@@ -102,6 +105,7 @@
                 <i class="fa-solid fa-arrow-left"></i> Quay lại
             </a>
         </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
         <p style="margin-top:2rem;font-size:.75rem;color:#9ca3af;">
             <a href="<?php echo e(url('/')); ?>" style="color:#6b9e00;text-decoration:none;font-weight:700;"><?php echo e($siteName); ?></a>

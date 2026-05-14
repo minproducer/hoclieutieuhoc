@@ -22,6 +22,7 @@ class Category extends Model
         'doc_type',
         'doc_count',
         'sort_order',
+        'type',
     ];
 
     protected $casts = [
@@ -66,5 +67,25 @@ class Category extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function scopeGrades($query)
+    {
+        return $query->where('type', 'grade');
+    }
+
+    public function scopeSubjects($query)
+    {
+        return $query->where('type', 'subject');
+    }
+
+    public function isGrade(): bool
+    {
+        return $this->type === 'grade';
+    }
+
+    public function isSubject(): bool
+    {
+        return $this->type === 'subject';
     }
 }
