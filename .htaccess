@@ -1,4 +1,4 @@
-Options -MultiViews -Indexes
+Options -MultiViews -Indexes +FollowSymLinks
 RewriteEngine On
 
 # Allow install.php to be accessed directly (remove after install)
