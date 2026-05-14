@@ -13,12 +13,11 @@ class SitemapController extends Controller
     {
         $siteUrl = rtrim(Setting::get('site_url', config('app.url')), '/');
 
-        $categories = Category::where('is_active', true)
-            ->select('slug', 'updated_at')
+        $categories = Category::select('slug', 'updated_at')
             ->orderBy('updated_at', 'desc')
             ->get();
 
-        $documents = Document::where('is_active', true)
+        $documents = Document::where('status', 'published')
             ->select('slug', 'updated_at')
             ->orderBy('updated_at', 'desc')
             ->limit(5000)
