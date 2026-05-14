@@ -12,7 +12,7 @@ set -e
 
 # ⚠️  THAY ĐỔI đường dẫn này cho đúng với cPanel của bạn
 # Tìm bằng lệnh: pwd (khi đang ở thư mục web)
-APP_DIR="$HOME/public_html"
+APP_DIR="$HOME/var/www/vhosts/rophieubaitap123.com"
 
 # Nếu dùng subdomain/addon domain, ví dụ:
 # APP_DIR="$HOME/hoclieu.minproducer.com/public_html"
