@@ -12,10 +12,11 @@ set -e
 
 # ⚠️  THAY ĐỔI đường dẫn này cho đúng với cPanel của bạn
 # Tìm bằng lệnh: pwd (khi đang ở thư mục web)
-APP_DIR="$HOME/var/www/vhosts/rophieubaitap123.com"
+APP_DIR="/var/www/vhosts/rophieubaitap123.com/httpdocs"
 
-# Nếu dùng subdomain/addon domain, ví dụ:
-# APP_DIR="$HOME/hoclieu.minproducer.com/public_html"
+# PHP 8.3 CLI tren Plesk
+PHP="/opt/plesk/php/8.3/bin/php"
+COMPOSER="/usr/lib/plesk-php83-composer/bin/composer"
 
 echo ""
 echo "🐯 HocLieuTieuHoc — Server Deploy"
@@ -29,15 +30,15 @@ git pull origin master
 
 echo ""
 echo "[2/5] Composer install (no dev)..."
-php8.2 $(which composer) install --no-dev --optimize-autoloader --no-interaction
+$PHP $COMPOSER install --no-dev --optimize-autoloader --no-interaction
 
 echo ""
 echo "[3/5] Artisan migrate + cache..."
-php8.2 artisan migrate --force
-php8.2 artisan config:cache
-php8.2 artisan route:cache
-php8.2 artisan view:cache
-php8.2 artisan storage:link 2>/dev/null || true
+$PHP artisan migrate --force
+$PHP artisan config:cache
+$PHP artisan route:cache
+$PHP artisan view:cache
+$PHP artisan storage:link 2>/dev/null || true
 
 echo ""
 echo "[4/5] Fix permissions..."
