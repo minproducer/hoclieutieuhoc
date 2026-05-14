@@ -434,6 +434,7 @@ class SettingsPage extends Page implements HasForms
         // Logo upload
         if (!empty($data['navbar_logo_upload'])) {
             $path = is_array($data['navbar_logo_upload']) ? array_values($data['navbar_logo_upload'])[0] : $data['navbar_logo_upload'];
+            $path = $this->convertToWebP($path);
             Setting::set('navbar_logo_url', \Illuminate\Support\Facades\Storage::disk('public')->url($path));
         } else {
             Setting::set('navbar_logo_url', $data['navbar_logo_url'] ?? '');
@@ -447,6 +448,7 @@ class SettingsPage extends Page implements HasForms
         if (!$footerSync) {
             if (!empty($data['footer_logo_upload'])) {
                 $path = is_array($data['footer_logo_upload']) ? array_values($data['footer_logo_upload'])[0] : $data['footer_logo_upload'];
+                $path = $this->convertToWebP($path);
                 Setting::set('footer_logo_url', \Illuminate\Support\Facades\Storage::disk('public')->url($path));
             } else {
                 Setting::set('footer_logo_url', $data['footer_logo_url'] ?? '');
@@ -499,6 +501,7 @@ class SettingsPage extends Page implements HasForms
             $uploadedPath = is_array($data['hero_mascot_upload'])
                 ? array_values($data['hero_mascot_upload'])[0]
                 : $data['hero_mascot_upload'];
+            $uploadedPath = $this->convertToWebP($uploadedPath);
             Setting::set('hero_mascot_url', \Illuminate\Support\Facades\Storage::disk('public')->url($uploadedPath));
         } else {
             Setting::set('hero_mascot_url', $data['hero_mascot_url'] ?? '');
@@ -516,6 +519,55 @@ class SettingsPage extends Page implements HasForms
             ->title('Đã lưu cài đặt')
             ->success()
             ->send();
+    }
+
+    /**
+     * Convert an uploaded image to WebP (if GD supports it). Returns the new path.
+     * Falls back to original path if conversion fails.
+     */
+    protected function convertToWebP(string $relativePath): string
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('public');
+        $absPath = $disk->path($relativePath);
+
+        // Skip SVG and files already WebP
+        $ext = strtolower(pathinfo($absPath, PATHINFO_EXTENSION));
+        if (in_array($ext, ['svg', 'webp']) || !function_exists('imagewebp')) {
+            return $relativePath;
+        }
+
+        $image = match ($ext) {
+            'jpg', 'jpeg' => @imagecreatefromjpeg($absPath),
+            'png'         => @imagecreatefrompng($absPath),
+            'gif'         => @imagecreatefromgif($absPath),
+            default       => null,
+        };
+
+        if (!$image) {
+            return $relativePath;
+        }
+
+        // Preserve transparency for PNG
+        if ($ext === 'png') {
+            imagepalettetotruecolor($image);
+            imagealphablending($image, true);
+            imagesavealpha($image, true);
+        }
+
+        $newRelative = preg_replace('/\.[^.]+$/', '.webp', $relativePath);
+        $newAbs      = $disk->path($newRelative);
+
+        if (imagewebp($image, $newAbs, 82)) {
+            imagedestroy($image);
+            // Remove original non-WebP file
+            if ($newRelative !== $relativePath) {
+                @unlink($absPath);
+            }
+            return $newRelative;
+        }
+
+        imagedestroy($image);
+        return $relativePath;
     }
 
     public function isGoogleDriveConnected(): bool
