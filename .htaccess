@@ -9,7 +9,7 @@ RewriteRule ^install\.php$ - [L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond public/%{REQUEST_FILENAME} -f
+RewriteCond %{DOCUMENT_ROOT}/public/%{REQUEST_URI} -f
 RewriteRule ^(.+)$ public/$1 [L]
 
 # All other requests go through Laravel
