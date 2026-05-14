@@ -6,6 +6,7 @@
 /storage/*.key
 /storage/app/tmp-uploads
 /vendor
+vendor.zip
 .env
 .env.backup
 .env.production
