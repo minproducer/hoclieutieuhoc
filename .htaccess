@@ -5,7 +5,14 @@ RewriteEngine On
 
 RewriteRule ^install\.php$ - [L]
 
-# Serve existing files and directories directly
+# Serve static assets from public/ folder
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond public/%{REQUEST_FILENAME} -f
+RewriteRule ^(.+)$ public/$1 [L]
+
+# All other requests go through Laravel
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
