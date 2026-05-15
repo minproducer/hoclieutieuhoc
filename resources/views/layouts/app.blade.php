@@ -3,7 +3,7 @@
     $siteUrl        = rtrim(\App\Models\Setting::get('site_url', config('app.url')), '/');
     $siteDesc       = \App\Models\Setting::get('site_description', 'Kho tài liệu giáo dục miễn phí cho học sinh Tiểu học Việt Nam');
     $siteKw         = \App\Models\Setting::get('site_keywords', 'tài liệu tiểu học, đề kiểm tra, đề ôn tập, luyện viết');
-    $ogImage        = \App\Models\Setting::get('og_image_url', '');
+    $ogImage        = \App\Models\Setting::get('og_image_url', '') ?: \App\Models\Setting::get('navbar_logo_url', '');
     $adsensePub     = \App\Models\Setting::get('adsense_publisher_id', '');
     $adsenseAuto    = \App\Models\Setting::get('adsense_auto_ads', '0');
     $analyticsCode  = \App\Models\Setting::get('analytics_head_code', '');
@@ -22,8 +22,20 @@
     $footerBg       = \App\Models\Setting::get('footer_bg_color', '#2e4800');
     $footerTagline  = \App\Models\Setting::get('footer_tagline', 'Thư viện tài liệu giáo dục miễn phí dành cho học sinh Tiểu học. Hàng ngàn tài liệu chất lượng cao từ lớp Tiền tiểu học đến lớp 5.');
     $footerCopyright= \App\Models\Setting::get('footer_copyright', '');
-    $footerLinksRaw = \App\Models\Setting::get('footer_links', '');
-    $footerLinks    = array_filter(array_map(function($l) { return explode(',', trim($l), 2); }, explode('|', $footerLinksRaw)), function($p) { return count($p) === 2 && trim($p[0]) !== ''; });
+    $footerCol1Title = \App\Models\Setting::get('footer_col1_title', 'Môn học');
+    $_footerLinksJson = \App\Models\Setting::get('footer_links', '');
+    $_footerLinksArr  = $_footerLinksJson ? (json_decode($_footerLinksJson, true) ?? []) : [];
+    if (empty($_footerLinksArr)) {
+        $_footerLinksArr = [
+            ['label' => 'Trang chủ', 'url_preset' => '/',       'url_custom' => ''],
+            ['label' => 'Tìm kiếm', 'url_preset' => '/search', 'url_custom' => ''],
+            ['label' => 'Quản trị', 'url_preset' => '/admin',  'url_custom' => ''],
+        ];
+    }
+    $footerLinks = array_map(function($fl) {
+        $url = ($fl['url_preset'] ?? '') === 'custom' ? ($fl['url_custom'] ?? '#') : ($fl['url_preset'] ?? '#');
+        return ['label' => $fl['label'] ?? '', 'url' => $url];
+    }, $_footerLinksArr);
     $pageTitle      = trim(strip_tags($__env->yieldContent('title', $siteName . ' - Thư viện tài liệu học tập')));
     $pageDesc       = trim(strip_tags($__env->yieldContent('description', $siteDesc)));
     $pageUrl        = $siteUrl . request()->getRequestUri();
@@ -51,7 +63,12 @@
     <meta property="og:title" content="{{ $pageTitle }}">
     <meta property="og:description" content="{{ Str::limit($pageDesc, 200) }}">
     <meta property="og:url" content="{{ $pageUrl }}">
-    @if($ogImage)<meta property="og:image" content="{{ $ogImage }}">@endif
+    @if($ogImage)
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/webp">
+    @endif
 
     {{-- Twitter Card --}}
     <meta name="twitter:card" content="summary_large_image">
@@ -408,7 +425,7 @@
                 </div>
 
                 <div>
-                    <h3 class="font-semibold mb-3 text-white">Môn học</h3>
+                    <h3 class="font-semibold mb-3 text-white">{{ $footerCol1Title }}</h3>
                     <ul class="space-y-2 text-sm text-primary-200">
                         @foreach($navCategories->take(5) as $fCat)
                         <li>
@@ -423,15 +440,9 @@
                 <div>
                     <h3 class="font-semibold mb-3 text-white">Liên kết</h3>
                     <ul class="space-y-2 text-sm text-primary-200">
-                        @if(count($footerLinks) > 0)
-                            @foreach($footerLinks as $fl)
-                            <li><a href="{{ trim($fl[1]) }}" class="hover:text-white transition-colors">{{ trim($fl[0]) }}</a></li>
-                            @endforeach
-                        @else
-                            <li><a href="{{ route('home') }}" class="hover:text-white transition-colors">Trang chủ</a></li>
-                            <li><a href="{{ route('search') }}" class="hover:text-white transition-colors">Tìm kiếm</a></li>
-                            <li><a href="/admin" class="hover:text-white transition-colors">Quản trị</a></li>
-                        @endif
+                        @foreach($footerLinks as $fl)
+                        <li><a href="{{ $fl['url'] }}" class="hover:text-white transition-colors">{{ $fl['label'] }}</a></li>
+                        @endforeach
                     </ul>
                 </div>
             </div>

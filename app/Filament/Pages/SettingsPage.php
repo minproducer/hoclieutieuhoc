@@ -47,7 +47,12 @@ class SettingsPage extends Page implements HasForms
             'analytics_head_code'        => Setting::get('analytics_head_code', ''),
             'footer_tagline'             => Setting::get('footer_tagline', 'Thư viện tài liệu giáo dục miễn phí dành cho học sinh Tiểu học. Hàng ngàn tài liệu chất lượng cao từ lớp Tiền tiểu học đến lớp 5.'),
             'footer_copyright'           => Setting::get('footer_copyright', ''),
-            'footer_links'               => Setting::get('footer_links', ''),
+            'footer_col1_title'          => Setting::get('footer_col1_title', 'Môn học'),
+            'footer_links'               => json_decode(Setting::get('footer_links', ''), true) ?? [
+                ['label' => 'Trang chủ',  'url_preset' => '/',       'url_custom' => ''],
+                ['label' => 'Tìm kiếm',   'url_preset' => '/search', 'url_custom' => ''],
+                ['label' => 'Quản trị',   'url_preset' => '/admin',  'url_custom' => ''],
+            ],
             'navbar_logo_icon'           => Setting::get('navbar_logo_icon', 'fa-graduation-cap'),
             'navbar_logo_url'            => Setting::get('navbar_logo_url', ''),
             'navbar_logo_upload'         => null,
@@ -409,11 +414,46 @@ class SettingsPage extends Page implements HasForms
                             ->placeholder('© 2025 HocLieuTieuHoc. Tất cả quyền được bảo lưu.')
                             ->maxLength(200),
 
-                        Forms\Components\TextInput::make('footer_links')
-                            ->label('Liên kết phụ (cách nhau bằng |, dạng: Tên,/url|Tên2,/url2)')
-                            ->placeholder('Trang chủ,/|Tìm kiếm,/search|Quản trị,/admin')
-                            ->helperText('Mỗi liên kết: Tên,/đường-dẫn — cách nhau bằng dấu |')
-                            ->maxLength(500),
+                        Forms\Components\TextInput::make('footer_col1_title')
+                            ->label('Tiêu đề cột "Môn học" (cột danh mục trái)')
+                            ->placeholder('Môn học')
+                            ->maxLength(60),
+
+                        Forms\Components\Repeater::make('footer_links')
+                            ->label('Liên kết cột phải (Liên kết)')
+                            ->schema([
+                                Forms\Components\TextInput::make('label')
+                                    ->label('Tên hiển thị')
+                                    ->required()
+                                    ->placeholder('Trang chủ')
+                                    ->maxLength(80)
+                                    ->columnSpan(1),
+
+                                Forms\Components\Select::make('url_preset')
+                                    ->label('Chọn link có sẵn')
+                                    ->options([
+                                        '/'           => 'Trang chủ (/)',
+                                        '/search'     => 'Tìm kiếm (/search)',
+                                        '/admin'      => 'Quản trị (/admin)',
+                                        '/sitemap.xml'=> 'Sitemap (/sitemap.xml)',
+                                        'custom'      => '— Tự điền URL —',
+                                    ])
+                                    ->default('/')
+                                    ->reactive()
+                                    ->columnSpan(1),
+
+                                Forms\Components\TextInput::make('url_custom')
+                                    ->label('URL tuỳ chỉnh')
+                                    ->placeholder('https://... hoặc /duong-dan')
+                                    ->maxLength(300)
+                                    ->visible(fn ($get) => $get('url_preset') === 'custom')
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(2)
+                            ->addActionLabel('+ Thêm liên kết')
+                            ->reorderable()
+                            ->defaultItems(0)
+                            ->helperText('Kéo để sắp xếp lại thứ tự. Chọn link có sẵn hoặc chọn "Tự điền URL" để nhập đường dẫn bất kỳ.'),
 
                         Forms\Components\ColorPicker::make('footer_bg_color')
                             ->label('Màu nền footer'),
@@ -469,7 +509,8 @@ class SettingsPage extends Page implements HasForms
         Setting::set('navbar_text_color', $data['navbar_text_color'] ?? '#446800');
         Setting::set('footer_tagline', $data['footer_tagline'] ?? '');
         Setting::set('footer_copyright', $data['footer_copyright'] ?? '');
-        Setting::set('footer_links', $data['footer_links'] ?? '');
+        Setting::set('footer_col1_title', $data['footer_col1_title'] ?? 'Môn học');
+        Setting::set('footer_links', json_encode(array_values($data['footer_links'] ?? [])));
         Setting::set('footer_bg_color', $data['footer_bg_color'] ?? '#2e4800');
         Setting::set('site_url', $data['site_url'] ?? '');
         Setting::set('site_description', $data['site_description'] ?? '');

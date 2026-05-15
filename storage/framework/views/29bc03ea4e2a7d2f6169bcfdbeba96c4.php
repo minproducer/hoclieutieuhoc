@@ -3,7 +3,7 @@
     $siteUrl        = rtrim(\App\Models\Setting::get('site_url', config('app.url')), '/');
     $siteDesc       = \App\Models\Setting::get('site_description', 'Kho tài liệu giáo dục miễn phí cho học sinh Tiểu học Việt Nam');
     $siteKw         = \App\Models\Setting::get('site_keywords', 'tài liệu tiểu học, đề kiểm tra, đề ôn tập, luyện viết');
-    $ogImage        = \App\Models\Setting::get('og_image_url', '');
+    $ogImage        = \App\Models\Setting::get('og_image_url', '') ?: \App\Models\Setting::get('navbar_logo_url', '');
     $adsensePub     = \App\Models\Setting::get('adsense_publisher_id', '');
     $adsenseAuto    = \App\Models\Setting::get('adsense_auto_ads', '0');
     $analyticsCode  = \App\Models\Setting::get('analytics_head_code', '');
@@ -51,7 +51,12 @@
     <meta property="og:title" content="<?php echo e($pageTitle); ?>">
     <meta property="og:description" content="<?php echo e(Str::limit($pageDesc, 200)); ?>">
     <meta property="og:url" content="<?php echo e($pageUrl); ?>">
-    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($ogImage): ?><meta property="og:image" content="<?php echo e($ogImage); ?>"><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($ogImage): ?>
+    <meta property="og:image" content="<?php echo e($ogImage); ?>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/webp">
+    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
     
     <meta name="twitter:card" content="summary_large_image">

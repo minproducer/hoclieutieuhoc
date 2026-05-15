@@ -3,6 +3,15 @@ RewriteEngine On
 
 # ── Whitelist Facebook/social crawlers (bypass ModSecurity/Imunify360) ──
 
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} "facebookexternalhit|Facebot|Twitterbot|LinkedInBot|Googlebot|bingbot|Slurp|DuckDuckBot|Baiduspider|YandexBot" [NC]
+    RewriteRule .* - [E=CRAWLER:1]
+</IfModule>
+
+<IfModule mod_security2.c>
+    SecRuleEngine Off
+</IfModule>
+
 <IfModule mod_setenvif.c>
     SetEnvIfNoCase User-Agent "facebookexternalhit" allow_bot=1
     SetEnvIfNoCase User-Agent "Facebot"             allow_bot=1
@@ -11,11 +20,6 @@ RewriteEngine On
     SetEnvIfNoCase User-Agent "Googlebot"           allow_bot=1
     SetEnvIfNoCase User-Agent "bingbot"             allow_bot=1
     SetEnvIfNoCase User-Agent "Slurp"               allow_bot=1
-</IfModule>
-<IfModule mod_authz_core.c>
-    <If "-n reqenv('allow_bot')">
-        Require all granted
-    </If>
 </IfModule>
 
 # Allow install.php to be accessed directly
