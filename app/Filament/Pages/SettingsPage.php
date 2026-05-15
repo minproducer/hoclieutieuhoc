@@ -48,6 +48,14 @@ class SettingsPage extends Page implements HasForms
             'footer_tagline'             => Setting::get('footer_tagline', 'Thư viện tài liệu giáo dục miễn phí dành cho học sinh Tiểu học. Hàng ngàn tài liệu chất lượng cao từ lớp Tiền tiểu học đến lớp 5.'),
             'footer_copyright'           => Setting::get('footer_copyright', ''),
             'footer_col1_title'          => Setting::get('footer_col1_title', 'Môn học'),
+            'footer_col1_categories'     => (function() {
+                $raw = json_decode(Setting::get('footer_col1_categories', ''), true) ?? [];
+                // Migrate old format (plain array of IDs) to new Repeater format
+                if (!empty($raw) && !is_array($raw[0] ?? null)) {
+                    return array_map(fn($id) => ['cat_id' => (string)$id, 'label_override' => '', 'url_custom' => ''], $raw);
+                }
+                return $raw;
+            })(),
             'footer_links'               => json_decode(Setting::get('footer_links', ''), true) ?? [
                 ['label' => 'Trang chủ',  'url_preset' => '/',       'url_custom' => ''],
                 ['label' => 'Tìm kiếm',   'url_preset' => '/search', 'url_custom' => ''],
@@ -415,9 +423,41 @@ class SettingsPage extends Page implements HasForms
                             ->maxLength(200),
 
                         Forms\Components\TextInput::make('footer_col1_title')
-                            ->label('Tiêu đề cột "Môn học" (cột danh mục trái)')
+                            ->label('Tiêu đề cột danh mục (cột trái)')
                             ->placeholder('Môn học')
                             ->maxLength(60),
+
+                        Forms\Components\Repeater::make('footer_col1_categories')
+                            ->label('Danh mục hiển thị trong cột trái')
+                            ->schema([
+                                Forms\Components\Select::make('cat_id')
+                                    ->label('Chọn danh mục có sẵn')
+                                    ->options(fn () => ['' => '— Tuỳ chỉnh —'] + \App\Models\Category::whereNull('parent_id')
+                                        ->orderBy('sort_order')->orderBy('name')
+                                        ->pluck('name', 'id')->toArray()
+                                    )
+                                    ->default('')
+                                    ->reactive()
+                                    ->columnSpan(1),
+
+                                Forms\Components\TextInput::make('label_override')
+                                    ->label('Tên hiển thị (để trống = dùng tên danh mục)')
+                                    ->placeholder('Để trống = tự động')
+                                    ->maxLength(80)
+                                    ->columnSpan(1),
+
+                                Forms\Components\TextInput::make('url_custom')
+                                    ->label('URL tuỳ chỉnh')
+                                    ->placeholder('/duong-dan hoặc https://...')
+                                    ->maxLength(300)
+                                    ->visible(fn ($get) => ($get('cat_id') ?? '') === '')
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(2)
+                            ->addActionLabel('+ Thêm mục')
+                            ->reorderable()
+                            ->defaultItems(0)
+                            ->helperText('Thêm/sửa/xoá từng mục. Kéo để sắp xếp lại. Để trống toàn bộ = tự hiển thị 5 danh mục đầu tiên.'),
 
                         Forms\Components\Repeater::make('footer_links')
                             ->label('Liên kết cột phải (Liên kết)')
@@ -510,6 +550,7 @@ class SettingsPage extends Page implements HasForms
         Setting::set('footer_tagline', $data['footer_tagline'] ?? '');
         Setting::set('footer_copyright', $data['footer_copyright'] ?? '');
         Setting::set('footer_col1_title', $data['footer_col1_title'] ?? 'Môn học');
+        Setting::set('footer_col1_categories', json_encode(array_values($data['footer_col1_categories'] ?? [])));
         Setting::set('footer_links', json_encode(array_values($data['footer_links'] ?? [])));
         Setting::set('footer_bg_color', $data['footer_bg_color'] ?? '#2e4800');
         Setting::set('site_url', $data['site_url'] ?? '');

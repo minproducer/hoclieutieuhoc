@@ -23,6 +23,26 @@
     $footerTagline  = \App\Models\Setting::get('footer_tagline', 'Thư viện tài liệu giáo dục miễn phí dành cho học sinh Tiểu học. Hàng ngàn tài liệu chất lượng cao từ lớp Tiền tiểu học đến lớp 5.');
     $footerCopyright= \App\Models\Setting::get('footer_copyright', '');
     $footerCol1Title = \App\Models\Setting::get('footer_col1_title', 'Môn học');
+    $_col1Raw = json_decode(\App\Models\Setting::get('footer_col1_categories', ''), true) ?? [];
+    if (!empty($_col1Raw) && isset($_col1Raw[0]) && is_array($_col1Raw[0])) {
+        // New Repeater format
+        $_allCats = $navCategories->keyBy('id');
+        $footerCol1Cats = collect($_col1Raw)->map(function($item) use ($_allCats) {
+            $catId = $item['cat_id'] ?? '';
+            if ($catId !== '' && $_allCats->has($catId)) {
+                $cat = $_allCats->get($catId);
+                return ['name' => ($item['label_override'] ?? '') ?: $cat->name, 'slug' => $cat->slug, 'is_cat' => true];
+            }
+            // Custom entry
+            $label = $item['label_override'] ?? '';
+            $url   = $item['url_custom'] ?? '#';
+            if (!$label) return null;
+            return ['name' => $label, 'url' => $url, 'is_cat' => false];
+        })->filter()->values();
+    } else {
+        // Fallback: first 5 categories
+        $footerCol1Cats = $navCategories->take(5)->map(fn($c) => ['name' => $c->name, 'slug' => $c->slug, 'is_cat' => true]);
+    }
     $_footerLinksJson = \App\Models\Setting::get('footer_links', '');
     $_footerLinksArr  = $_footerLinksJson ? (json_decode($_footerLinksJson, true) ?? []) : [];
     if (empty($_footerLinksArr)) {
@@ -427,11 +447,13 @@
                 <div>
                     <h3 class="font-semibold mb-3 text-white">{{ $footerCol1Title }}</h3>
                     <ul class="space-y-2 text-sm text-primary-200">
-                        @foreach($navCategories->take(5) as $fCat)
+                        @foreach($footerCol1Cats as $fCat)
                         <li>
-                            <a href="{{ route('category.show', $fCat->slug) }}" class="hover:text-white transition-colors">
-                                {{ $fCat->name }}
-                            </a>
+                            @if($fCat['is_cat'])
+                                <a href="{{ route('category.show', $fCat['slug']) }}" class="hover:text-white transition-colors">{{ $fCat['name'] }}</a>
+                            @else
+                                <a href="{{ $fCat['url'] }}" class="hover:text-white transition-colors">{{ $fCat['name'] }}</a>
+                            @endif
                         </li>
                         @endforeach
                     </ul>
