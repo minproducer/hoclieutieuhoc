@@ -503,6 +503,14 @@
             setTimeout(hideLoader, 4000);
         }
 
+        // bfcache restore (back/forward navigation): hide loader immediately
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted) {
+                loader.classList.remove('transition-flash');
+                loader.classList.add('hide');
+            }
+        });
+
         // Page transition: show loader briefly on internal link clicks
         document.addEventListener('click', function (e) {
             const a = e.target.closest('a[href]');
